@@ -183,7 +183,7 @@ public abstract class FirebaseRecyclerAdapter<T, VH extends RecyclerView.ViewHol
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    //First Time Onwards
+                    // First Time Onwards
                     mClipTopFirstTime = false;
                 }
             }, 1000 /*Generous 1 second delay allowing all the children to get added the first.*/);
