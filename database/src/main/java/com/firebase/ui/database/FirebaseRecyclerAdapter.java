@@ -40,6 +40,12 @@ public abstract class FirebaseRecyclerAdapter<T, VH extends RecyclerView.ViewHol
     protected final int mModelLayout;
 
     /**
+     * A flag for remaining clipped to the 0th position of the list if loading the data
+     * for the first time, and then onwards scrolling to the newly added children.
+     */
+    protected boolean mClipTopFirstTime;
+
+    /**
      * @param snapshots       The data used to populate the adapter
      * @param modelLayout     This is the layout used to represent a single item in the list. You
      *                        will be responsible for populating an instance of the corresponding
@@ -119,6 +125,10 @@ public abstract class FirebaseRecyclerAdapter<T, VH extends RecyclerView.ViewHol
         this(new ClassSnapshotParser<>(modelClass), modelLayout, viewHolderClass, query, owner);
     }
 
+    public void clipToTopOnFirstTime(boolean clipToTop){
+        this.mClipTopFirstTime = clipToTop;
+    }
+
     @Override
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     public void startListening() {
@@ -150,7 +160,7 @@ public abstract class FirebaseRecyclerAdapter<T, VH extends RecyclerView.ViewHol
                                int oldIndex) {
         switch (type) {
             case ADDED:
-                notifyItemInserted(index);
+            	if(mClipTopFirstTime) notifyDataSetChanged(); else notifyItemInserted(index);
                 break;
             case CHANGED:
                 notifyItemChanged(index);
@@ -168,6 +178,16 @@ public abstract class FirebaseRecyclerAdapter<T, VH extends RecyclerView.ViewHol
 
     @Override
     public void onDataChanged() {
+    	// Data loaded the first time
+        if(mClipTopFirstTime) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //First Time Onwards
+                    mClipTopFirstTime = false;
+                }
+            }, 1000); // Generous 1 second delay allowing all the children to add the first.
+        }
     }
 
     @Override
